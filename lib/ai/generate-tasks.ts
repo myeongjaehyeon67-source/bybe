@@ -58,7 +58,8 @@ Turn this into a logically ordered list of concrete development tasks that imple
 - Do not write vague tasks like "Build the app". Prefer concrete tasks like "Create project creation form" or "Create POST API route for project generation".
 - Order tasks the way they should be built (foundational tasks first).
 - Set relatedFeatureTitle to the exact title of the feature a task belongs to, when applicable.
-- Give each task 2-5 short acceptance criteria.`;
+- Give each task 2-5 short acceptance criteria.
+- Respond in the same language the project name and MVP summary are written in.`;
 }
 
 async function callClaude(context: ProjectContext): Promise<unknown> {
@@ -87,7 +88,7 @@ export async function generateTasksForFeatures(
 ): Promise<TaskGeneration> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error(
-      "AI generation is not configured yet. Add ANTHROPIC_API_KEY to .env.local.",
+      "AI 생성 기능이 아직 설정되지 않았어요. .env.local에 ANTHROPIC_API_KEY를 추가해주세요.",
     );
   }
 
@@ -103,5 +104,5 @@ export async function generateTasksForFeatures(
   }
 
   console.error("Task generation failed", lastError);
-  throw new Error("Couldn't generate development tasks. Please try again.");
+  throw new Error("개발 태스크를 생성하지 못했어요. 다시 시도해주세요.");
 }

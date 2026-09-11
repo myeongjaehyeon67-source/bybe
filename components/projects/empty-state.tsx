@@ -9,14 +9,14 @@ export function EmptyState() {
         <Sparkles className="size-5 text-muted-foreground" />
       </div>
       <div className="flex flex-col gap-1">
-        <p className="font-medium">No projects yet</p>
+        <p className="font-medium">아직 프로젝트가 없어요</p>
         <p className="max-w-sm text-sm text-muted-foreground">
-          Enter a rough idea and Project OS will turn it into an MVP plan and
-          development tasks.
+          러프한 아이디어를 입력하면 Project OS가 MVP 계획과 개발 태스크로
+          정리해드려요.
         </p>
       </div>
       <Button nativeButton={false} render={<Link href="/projects/new" />}>
-        New Project
+        새 프로젝트
       </Button>
     </div>
   );

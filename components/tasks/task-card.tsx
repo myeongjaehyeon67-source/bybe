@@ -12,6 +12,12 @@ const PRIORITY_VARIANT: Record<
   low: "outline",
 };
 
+const PRIORITY_LABEL: Record<TaskPriority, string> = {
+  high: "높음",
+  medium: "보통",
+  low: "낮음",
+};
+
 export function TaskCard({
   projectId,
   task,
@@ -32,7 +38,7 @@ export function TaskCard({
             <span />
           )}
           <Badge variant={PRIORITY_VARIANT[task.priority]} className="shrink-0">
-            {task.priority}
+            {PRIORITY_LABEL[task.priority]}
           </Badge>
         </div>
       </Card>

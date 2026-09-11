@@ -74,7 +74,8 @@ Rules:
 - Keep the MVP as small as possible. Prefer fewer, essential features.
 - List 3-6 MVP features, ordered by priority.
 - excludedFeatures must list features that are commonly tempting to add but are NOT needed for the MVP.
-- Do not suggest payments, teams, or real-time collaboration for the MVP.`;
+- Do not suggest payments, teams, or real-time collaboration for the MVP.
+- Respond in the same language the rough idea above is written in.`;
 }
 
 async function callClaude(input: NewProjectInput): Promise<unknown> {
@@ -103,7 +104,7 @@ export async function generateProjectPlan(
 ): Promise<ProjectGeneration> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error(
-      "AI generation is not configured yet. Add ANTHROPIC_API_KEY to .env.local.",
+      "AI 생성 기능이 아직 설정되지 않았어요. .env.local에 ANTHROPIC_API_KEY를 추가해주세요.",
     );
   }
 
@@ -119,5 +120,5 @@ export async function generateProjectPlan(
   }
 
   console.error("Project generation failed", lastError);
-  throw new Error("Couldn't generate your project plan. Please try again.");
+  throw new Error("프로젝트 계획을 생성하지 못했어요. 다시 시도해주세요.");
 }

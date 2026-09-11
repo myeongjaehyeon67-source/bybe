@@ -7,7 +7,7 @@ import { signOut } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [{ href: "/dashboard", label: "Dashboard", icon: LayoutGrid }];
+const NAV_ITEMS = [{ href: "/dashboard", label: "대시보드", icon: LayoutGrid }];
 
 export function Sidebar({ userEmail }: { userEmail: string | null }) {
   const pathname = usePathname();
@@ -51,7 +51,7 @@ export function Sidebar({ userEmail }: { userEmail: string | null }) {
               className="w-full justify-start gap-2"
             >
               <LogOut className="size-4" />
-              Log out
+              로그아웃
             </Button>
           </form>
         </div>

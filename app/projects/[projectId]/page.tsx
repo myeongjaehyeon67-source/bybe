@@ -1,23 +1,25 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { calculateProgress } from "@/lib/progress";
+import { recommendNextAction } from "@/lib/recommend-next-action";
 import type { FeaturePriority, ProjectStatus } from "@/types/database";
 
 const STATUS_LABEL: Record<ProjectStatus, string> = {
-  planning: "Planning",
-  building: "Building",
-  completed: "Completed",
-  archived: "Archived",
+  planning: "기획 중",
+  building: "개발 중",
+  completed: "완료",
+  archived: "보관됨",
 };
 
 const PRIORITY_LABEL: Record<FeaturePriority, string> = {
-  high: "High",
-  medium: "Medium",
-  low: "Low",
+  high: "높음",
+  medium: "보통",
+  low: "낮음",
 };
 
 export default async function ProjectOverviewPage({
@@ -46,13 +48,14 @@ export default async function ProjectOverviewPage({
 
   const { data: tasks } = await supabase
     .from("tasks")
-    .select("status")
+    .select("id, title, priority, status, sort_order")
     .eq("project_id", projectId);
 
   const totalTasks = tasks?.length ?? 0;
   const completedTasks =
     tasks?.filter((t) => t.status === "done").length ?? 0;
   const progress = calculateProgress(completedTasks, totalTasks);
+  const nextAction = tasks ? recommendNextAction(tasks) : null;
 
   return (
     <div className="flex flex-1 flex-col gap-8">
@@ -73,33 +76,57 @@ export default async function ProjectOverviewPage({
           nativeButton={false}
           render={<Link href={`/projects/${projectId}/tasks`} />}
         >
-          View Tasks
+          태스크 보기
         </Button>
       </div>
 
       <div className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium">MVP Progress</h2>
+        <h2 className="text-sm font-medium">MVP 진행률</h2>
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium">{progress}%</span>
           <span className="text-muted-foreground">
-            {completedTasks} / {totalTasks} tasks completed
+            {completedTasks} / {totalTasks}개 태스크 완료
           </span>
         </div>
         <Progress value={progress} />
       </div>
 
+      {nextAction && (
+        <div className="flex flex-col gap-3 rounded-lg border p-4">
+          <h2 className="text-sm font-medium">다음 액션</h2>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{nextAction.title}</span>
+              <span className="text-sm text-muted-foreground">
+                {nextAction.reason}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              nativeButton={false}
+              render={
+                <Link
+                  href={`/projects/${projectId}/tasks/${nextAction.taskId}`}
+                />
+              }
+            >
+              시작하기
+              <ArrowRight className="size-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Section title="Problem">{project.problem}</Section>
-        <Section title="Target User">{project.target_user}</Section>
-        <Section title="Value Proposition">
-          {project.value_proposition}
-        </Section>
+        <Section title="문제">{project.problem}</Section>
+        <Section title="타겟 유저">{project.target_user}</Section>
+        <Section title="가치 제안">{project.value_proposition}</Section>
       </div>
 
-      <Section title="MVP Summary">{project.mvp_summary}</Section>
+      <Section title="MVP 요약">{project.mvp_summary}</Section>
 
       <div className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium">MVP Features</h2>
+        <h2 className="text-sm font-medium">MVP 기능</h2>
         <ul className="flex flex-col gap-2">
           {(features ?? []).map((feature) => (
             <li
@@ -122,7 +149,7 @@ export default async function ProjectOverviewPage({
 
       {project.excluded_features.length > 0 && (
         <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-medium">Excluded From MVP</h2>
+          <h2 className="text-sm font-medium">MVP에서 제외된 기능</h2>
           <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
             {project.excluded_features.map((item) => (
               <li key={item} className="flex items-center gap-2">

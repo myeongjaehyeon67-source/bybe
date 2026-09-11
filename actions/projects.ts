@@ -38,7 +38,7 @@ export async function generateProject(
     plan = await generateProjectPlan(parsed.data);
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Generation failed.",
+      error: error instanceof Error ? error.message : "생성에 실패했어요.",
     };
   }
 
@@ -61,7 +61,7 @@ export async function generateProject(
     .single();
 
   if (projectError || !project) {
-    return { error: "Couldn't save your project. Please try again." };
+    return { error: "프로젝트를 저장하지 못했어요. 다시 시도해주세요." };
   }
 
   const { data: features, error: featuresError } = await supabase
@@ -79,7 +79,7 @@ export async function generateProject(
 
   if (featuresError || !features) {
     return {
-      error: "Project was saved, but features failed to save. Please retry.",
+      error: "프로젝트는 저장됐지만 기능 저장에 실패했어요. 다시 시도해주세요.",
     };
   }
 

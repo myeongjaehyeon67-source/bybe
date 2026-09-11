@@ -3,9 +3,9 @@ import { TaskCard } from "@/components/tasks/task-card";
 import type { TaskStatus } from "@/types/database";
 
 const COLUMNS: { status: TaskStatus; label: string }[] = [
-  { status: "todo", label: "To Do" },
-  { status: "doing", label: "Doing" },
-  { status: "done", label: "Done" },
+  { status: "todo", label: "할 일" },
+  { status: "doing", label: "진행 중" },
+  { status: "done", label: "완료" },
 ];
 
 export default async function TasksPage({
@@ -26,12 +26,12 @@ export default async function TasksPage({
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <h1 className="text-xl font-semibold tracking-tight">Tasks</h1>
+      <h1 className="text-xl font-semibold tracking-tight">태스크</h1>
 
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No tasks yet. Tasks are generated automatically when a project is
-          created.
+          아직 태스크가 없어요. 프로젝트를 생성하면 태스크가 자동으로
+          만들어져요.
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

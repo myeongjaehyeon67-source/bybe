@@ -13,10 +13,10 @@ import { calculateProgress } from "@/lib/progress";
 import type { Project, ProjectStatus } from "@/types/project";
 
 const STATUS_LABEL: Record<ProjectStatus, string> = {
-  planning: "Planning",
-  building: "Building",
-  completed: "Completed",
-  archived: "Archived",
+  planning: "기획 중",
+  building: "개발 중",
+  completed: "완료",
+  archived: "보관됨",
 };
 
 const STATUS_VARIANT: Record<
@@ -52,7 +52,7 @@ export function ProjectCard({ project }: { project: Project }) {
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{progress}%</span>
               <span className="text-muted-foreground">
-                {project.completedTasks} / {project.totalTasks} tasks
+                {project.completedTasks} / {project.totalTasks} 태스크
               </span>
             </div>
             <Progress value={progress} />
@@ -61,7 +61,7 @@ export function ProjectCard({ project }: { project: Project }) {
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <ArrowRight className="size-3.5 shrink-0" />
               <span>
-                Next:{" "}
+                다음:{" "}
                 <span className="text-foreground">{project.nextAction}</span>
               </span>
             </div>

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const newProjectInputSchema = z.object({
-  idea: z.string().min(10, "Describe your idea in a bit more detail."),
+  idea: z.string().min(10, "아이디어를 조금 더 자세히 설명해주세요."),
   targetAudience: z.string().optional(),
   platform: z.enum(["Web", "Mobile", "Desktop", "Other"]).optional(),
   experienceLevel: z.enum(["Beginner", "Intermediate", "Advanced"]).optional(),

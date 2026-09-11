@@ -28,13 +28,13 @@ export function LoginForm() {
       <div className="flex flex-col gap-1 text-center">
         <h1 className="text-xl font-semibold tracking-tight">Project OS</h1>
         <p className="text-sm text-muted-foreground">
-          {isLogin ? "Log in to your account" : "Create an account"}
+          {isLogin ? "계정에 로그인하세요" : "계정을 만드세요"}
         </p>
       </div>
 
       <form action={action} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">이메일</Label>
           <Input
             id="email"
             name="email"
@@ -44,7 +44,7 @@ export function LoginForm() {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">비밀번호</Label>
           <Input
             id="password"
             name="password"
@@ -63,7 +63,7 @@ export function LoginForm() {
         )}
 
         <Button type="submit" disabled={pending} className="w-full">
-          {pending ? "Please wait..." : isLogin ? "Log in" : "Sign up"}
+          {pending ? "처리 중..." : isLogin ? "로그인" : "회원가입"}
         </Button>
       </form>
 
@@ -72,7 +72,7 @@ export function LoginForm() {
         onClick={() => setMode(isLogin ? "signup" : "login")}
         className="text-center text-sm text-muted-foreground hover:text-foreground"
       >
-        {isLogin ? "Need an account? Sign up" : "Already have an account? Log in"}
+        {isLogin ? "계정이 없으신가요? 회원가입" : "이미 계정이 있으신가요? 로그인"}
       </button>
     </div>
   );

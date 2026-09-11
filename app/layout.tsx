@@ -15,13 +15,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Project OS",
   description:
-    "Turn a rough app idea into a clear MVP plan, tasks, and next actions.",
+    "러프한 앱 아이디어를 명확한 MVP 계획과 태스크, 다음 액션으로 정리해드려요.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

@@ -5,13 +5,17 @@ import { createClient } from "@/lib/supabase/server";
 import { updateTaskStatus } from "@/actions/tasks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GeneratePromptButton } from "@/components/tasks/generate-prompt-button";
+import { CopyButton } from "@/components/tasks/copy-button";
 import type { TaskStatus } from "@/types/database";
 
 const STATUS_OPTIONS: { status: TaskStatus; label: string }[] = [
-  { status: "todo", label: "To Do" },
-  { status: "doing", label: "Doing" },
-  { status: "done", label: "Done" },
+  { status: "todo", label: "할 일" },
+  { status: "doing", label: "진행 중" },
+  { status: "done", label: "완료" },
 ];
+
+const PRIORITY_LABEL = { high: "높음", medium: "보통", low: "낮음" };
 
 export default async function TaskDetailPage({
   params,
@@ -38,7 +42,7 @@ export default async function TaskDetailPage({
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-        Back to Tasks
+        태스크 목록으로
       </Link>
 
       <div className="flex flex-col gap-2">
@@ -46,18 +50,18 @@ export default async function TaskDetailPage({
           <h1 className="text-xl font-semibold tracking-tight">
             {task.title}
           </h1>
-          <Badge variant="outline">{task.priority}</Badge>
+          <Badge variant="outline">{PRIORITY_LABEL[task.priority]}</Badge>
         </div>
         {task.features && (
           <span className="text-sm text-muted-foreground">
-            Feature: {task.features.title}
+            관련 기능: {task.features.title}
           </span>
         )}
         <p className="text-sm text-muted-foreground">{task.description}</p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium">Status</h2>
+        <h2 className="text-sm font-medium">상태</h2>
         <div className="flex gap-2">
           {STATUS_OPTIONS.map((option) => (
             <form
@@ -83,7 +87,7 @@ export default async function TaskDetailPage({
 
       {task.acceptance_criteria.length > 0 && (
         <div className="flex flex-col gap-2">
-          <h2 className="text-sm font-medium">Acceptance Criteria</h2>
+          <h2 className="text-sm font-medium">완료 조건</h2>
           <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
             {task.acceptance_criteria.map((item) => (
               <li key={item} className="flex items-start gap-2">
@@ -96,15 +100,21 @@ export default async function TaskDetailPage({
       )}
 
       <div className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium">AI Coding Prompt</h2>
+        <h2 className="text-sm font-medium">AI 코딩 프롬프트</h2>
         {task.ai_coding_prompt ? (
-          <pre className="whitespace-pre-wrap rounded-lg border bg-muted/30 p-3 text-sm">
-            {task.ai_coding_prompt}
-          </pre>
+          <div className="flex flex-col gap-2">
+            <pre className="whitespace-pre-wrap rounded-lg border bg-muted/30 p-3 text-sm">
+              {task.ai_coding_prompt}
+            </pre>
+            <CopyButton text={task.ai_coding_prompt} />
+          </div>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Not generated yet.
-          </p>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-muted-foreground">
+              아직 생성되지 않았어요.
+            </p>
+            <GeneratePromptButton taskId={taskId} projectId={projectId} />
+          </div>
         )}
       </div>
     </div>
