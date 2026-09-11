@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, LogOut } from "lucide-react";
+import { signOut } from "@/actions/auth";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [{ href: "/dashboard", label: "Dashboard", icon: LayoutGrid }];
 
-export function Sidebar() {
+export function Sidebar({ userEmail }: { userEmail: string | null }) {
   const pathname = usePathname();
 
   return (
@@ -35,6 +37,25 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {userEmail && (
+        <div className="mt-auto flex flex-col gap-2 border-t pt-3">
+          <span className="truncate px-2 text-xs text-muted-foreground">
+            {userEmail}
+          </span>
+          <form action={signOut}>
+            <Button
+              type="submit"
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-2"
+            >
+              <LogOut className="size-4" />
+              Log out
+            </Button>
+          </form>
+        </div>
+      )}
     </aside>
   );
 }
