@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TaskCard } from "@/components/tasks/task-card";
 import type { TaskStatus } from "@/types/database";
@@ -15,6 +16,16 @@ export default async function TasksPage({
 }) {
   const { projectId } = await params;
   const supabase = await createClient();
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("id", projectId)
+    .single();
+
+  if (!project) {
+    notFound();
+  }
 
   const { data: tasks } = await supabase
     .from("tasks")
