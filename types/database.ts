@@ -21,6 +21,7 @@ export interface Database {
           platform: string | null;
           experience_level: string | null;
           status: ProjectStatus;
+          excluded_features: string[];
           created_at: string;
           updated_at: string;
         };
@@ -37,10 +38,12 @@ export interface Database {
           platform?: string | null;
           experience_level?: string | null;
           status?: ProjectStatus;
+          excluded_features?: string[];
           created_at?: string;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["projects"]["Insert"]>;
+        Relationships: [];
       };
       features: {
         Row: {
@@ -66,6 +69,15 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["features"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "features_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       tasks: {
         Row: {
@@ -97,8 +109,26 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["tasks"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tasks_feature_id_fkey";
+            columns: ["feature_id"];
+            isOneToOne: false;
+            referencedRelation: "features";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
   };
 }
 

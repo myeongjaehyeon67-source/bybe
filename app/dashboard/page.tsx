@@ -2,42 +2,30 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/projects/project-card";
 import { EmptyState } from "@/components/projects/empty-state";
+import { createClient } from "@/lib/supabase/server";
 import type { Project } from "@/types/project";
 
-// Temporary mock data for the Phase 2 application shell.
-// Replaced once projects are read from Supabase.
-const MOCK_PROJECTS: Project[] = [
-  {
-    id: "1",
-    name: "AI Quiz",
-    description: "Turn study notes into quizzes with AI.",
-    status: "building",
-    completedTasks: 13,
-    totalTasks: 18,
-    nextAction: "Build Quiz Result Page",
-  },
-  {
-    id: "2",
-    name: "Habit Tracker",
-    description: "A minimal daily habit tracker for solo builders.",
-    status: "planning",
-    completedTasks: 0,
-    totalTasks: 12,
-    nextAction: "Define MVP scope",
-  },
-  {
-    id: "3",
-    name: "Portfolio Site",
-    description: "A one-page portfolio generated from project case studies.",
-    status: "completed",
-    completedTasks: 9,
-    totalTasks: 9,
-    nextAction: null,
-  },
-];
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-export default function DashboardPage() {
-  const projects = MOCK_PROJECTS;
+  const { data: rows } = await supabase
+    .from("projects")
+    .select("id, name, description, status, tasks(status)")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false });
+
+  const projects: Project[] = (rows ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    status: row.status,
+    completedTasks: row.tasks.filter((t) => t.status === "done").length,
+    totalTasks: row.tasks.length,
+    nextAction: null,
+  }));
 
   return (
     <div className="flex flex-1 flex-col gap-6">

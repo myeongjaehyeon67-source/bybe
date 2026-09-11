@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# saved-webpage debug artifacts
+/Project OS.html
+/Project OS_files/
