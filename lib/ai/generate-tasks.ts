@@ -1,24 +1,22 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI, Type } from "@google/genai";
 import { taskGenerationSchema, type TaskGeneration } from "@/lib/validators/task";
 
-const TOOL_NAME = "return_tasks";
-
-const TOOL_INPUT_SCHEMA = {
-  type: "object" as const,
+const RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
   properties: {
     tasks: {
-      type: "array",
+      type: Type.ARRAY,
       items: {
-        type: "object",
+        type: Type.OBJECT,
         properties: {
-          title: { type: "string" },
-          description: { type: "string" },
-          priority: { type: "string", enum: ["high", "medium", "low"] },
-          relatedFeatureTitle: { type: "string" },
+          title: { type: Type.STRING },
+          description: { type: Type.STRING },
+          priority: { type: Type.STRING, enum: ["high", "medium", "low"] },
+          relatedFeatureTitle: { type: Type.STRING },
           acceptanceCriteria: {
-            type: "array",
-            items: { type: "string" },
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
           },
         },
         required: ["title", "description", "priority", "acceptanceCriteria"],
@@ -62,33 +60,27 @@ Turn this into a logically ordered list of concrete development tasks that imple
 - Respond in the same language the project name and MVP summary are written in.`;
 }
 
-async function callClaude(context: ProjectContext): Promise<unknown> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+async function callGemini(context: ProjectContext): Promise<unknown> {
+  const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 4096,
-    tools: [
-      {
-        name: TOOL_NAME,
-        description: "Return the ordered list of development tasks.",
-        input_schema: TOOL_INPUT_SCHEMA,
-      },
-    ],
-    tool_choice: { type: "tool", name: TOOL_NAME },
-    messages: [{ role: "user", content: buildPrompt(context) }],
+  const response = await client.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: buildPrompt(context),
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: RESPONSE_SCHEMA,
+    },
   });
 
-  const toolUse = response.content.find((block) => block.type === "tool_use");
-  return toolUse?.input;
+  return JSON.parse(response.text ?? "");
 }
 
 export async function generateTasksForFeatures(
   context: ProjectContext,
 ): Promise<TaskGeneration> {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     throw new Error(
-      "AI 생성 기능이 아직 설정되지 않았어요. .env.local에 ANTHROPIC_API_KEY를 추가해주세요.",
+      "AI 생성 기능이 아직 설정되지 않았어요. .env.local에 GEMINI_API_KEY를 추가해주세요.",
     );
   }
 
@@ -96,7 +88,7 @@ export async function generateTasksForFeatures(
 
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const raw = await callClaude(context);
+      const raw = await callGemini(context);
       return taskGenerationSchema.parse(raw);
     } catch (error) {
       lastError = error;

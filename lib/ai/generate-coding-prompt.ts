@@ -1,5 +1,5 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 
 const TECH_STACK = ["Next.js", "TypeScript", "Supabase", "Tailwind CSS", "shadcn/ui"].join(
   ", ",
@@ -34,24 +34,19 @@ Return plain text only, no commentary before or after.`;
 export async function generateCodingPrompt(
   input: CodingPromptInput,
 ): Promise<string> {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     throw new Error(
-      "AI 생성 기능이 아직 설정되지 않았어요. .env.local에 ANTHROPIC_API_KEY를 추가해주세요.",
+      "AI 생성 기능이 아직 설정되지 않았어요. .env.local에 GEMINI_API_KEY를 추가해주세요.",
     );
   }
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 1024,
-    messages: [{ role: "user", content: buildPrompt(input) }],
+  const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const response = await client.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: buildPrompt(input),
   });
 
-  const text = response.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n")
-    .trim();
+  const text = (response.text ?? "").trim();
 
   if (!text) {
     throw new Error("코딩 프롬프트를 생성하지 못했어요. 다시 시도해주세요.");

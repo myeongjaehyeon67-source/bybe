@@ -1,24 +1,22 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI, Type } from "@google/genai";
 import {
   projectGenerationSchema,
   type NewProjectInput,
   type ProjectGeneration,
 } from "@/lib/validators/project";
 
-const TOOL_NAME = "return_project_plan";
-
-const TOOL_INPUT_SCHEMA = {
-  type: "object" as const,
+const RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
   properties: {
     project: {
-      type: "object",
+      type: Type.OBJECT,
       properties: {
-        name: { type: "string" },
-        description: { type: "string" },
-        problem: { type: "string" },
-        targetUser: { type: "string" },
-        valueProposition: { type: "string" },
+        name: { type: Type.STRING },
+        description: { type: Type.STRING },
+        problem: { type: Type.STRING },
+        targetUser: { type: Type.STRING },
+        valueProposition: { type: Type.STRING },
       },
       required: [
         "name",
@@ -29,17 +27,17 @@ const TOOL_INPUT_SCHEMA = {
       ],
     },
     mvp: {
-      type: "object",
+      type: Type.OBJECT,
       properties: {
-        summary: { type: "string" },
+        summary: { type: Type.STRING },
         features: {
-          type: "array",
+          type: Type.ARRAY,
           items: {
-            type: "object",
+            type: Type.OBJECT,
             properties: {
-              title: { type: "string" },
-              description: { type: "string" },
-              priority: { type: "string", enum: ["high", "medium", "low"] },
+              title: { type: Type.STRING },
+              description: { type: Type.STRING },
+              priority: { type: Type.STRING, enum: ["high", "medium", "low"] },
             },
             required: ["title", "description", "priority"],
           },
@@ -48,8 +46,8 @@ const TOOL_INPUT_SCHEMA = {
       required: ["summary", "features"],
     },
     excludedFeatures: {
-      type: "array",
-      items: { type: "string" },
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
     },
   },
   required: ["project", "mvp", "excludedFeatures"],
@@ -78,33 +76,27 @@ Rules:
 - Respond in the same language the rough idea above is written in.`;
 }
 
-async function callClaude(input: NewProjectInput): Promise<unknown> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+async function callGemini(input: NewProjectInput): Promise<unknown> {
+  const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 2048,
-    tools: [
-      {
-        name: TOOL_NAME,
-        description: "Return the structured MVP project plan.",
-        input_schema: TOOL_INPUT_SCHEMA,
-      },
-    ],
-    tool_choice: { type: "tool", name: TOOL_NAME },
-    messages: [{ role: "user", content: buildPrompt(input) }],
+  const response = await client.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: buildPrompt(input),
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: RESPONSE_SCHEMA,
+    },
   });
 
-  const toolUse = response.content.find((block) => block.type === "tool_use");
-  return toolUse?.input;
+  return JSON.parse(response.text ?? "");
 }
 
 export async function generateProjectPlan(
   input: NewProjectInput,
 ): Promise<ProjectGeneration> {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     throw new Error(
-      "AI 생성 기능이 아직 설정되지 않았어요. .env.local에 ANTHROPIC_API_KEY를 추가해주세요.",
+      "AI 생성 기능이 아직 설정되지 않았어요. .env.local에 GEMINI_API_KEY를 추가해주세요.",
     );
   }
 
@@ -112,7 +104,7 @@ export async function generateProjectPlan(
 
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const raw = await callClaude(input);
+      const raw = await callGemini(input);
       return projectGenerationSchema.parse(raw);
     } catch (error) {
       lastError = error;
