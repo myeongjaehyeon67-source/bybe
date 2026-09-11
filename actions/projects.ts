@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { generateProjectPlan } from "@/lib/ai/generate-project";
+import { generateTasksForFeatures } from "@/lib/ai/generate-tasks";
 import {
   newProjectInputSchema,
   type GenerateProjectState,
@@ -63,20 +64,54 @@ export async function generateProject(
     return { error: "Couldn't save your project. Please try again." };
   }
 
-  const { error: featuresError } = await supabase.from("features").insert(
-    plan.mvp.features.map((feature) => ({
-      project_id: project.id,
-      title: feature.title,
-      description: feature.description,
-      priority: feature.priority,
-      included_in_mvp: true,
-    })),
-  );
+  const { data: features, error: featuresError } = await supabase
+    .from("features")
+    .insert(
+      plan.mvp.features.map((feature) => ({
+        project_id: project.id,
+        title: feature.title,
+        description: feature.description,
+        priority: feature.priority,
+        included_in_mvp: true,
+      })),
+    )
+    .select("id, title");
 
-  if (featuresError) {
+  if (featuresError || !features) {
     return {
       error: "Project was saved, but features failed to save. Please retry.",
     };
+  }
+
+  // Best-effort: task generation failing shouldn't discard the project/features
+  // that already saved successfully.
+  try {
+    const taskPlan = await generateTasksForFeatures({
+      name: plan.project.name,
+      mvpSummary: plan.mvp.summary,
+      features: plan.mvp.features,
+    });
+
+    const featureIdByTitle = new Map(
+      features.map((f) => [f.title.toLowerCase(), f.id]),
+    );
+
+    await supabase.from("tasks").insert(
+      taskPlan.tasks.map((task, index) => ({
+        project_id: project.id,
+        feature_id: task.relatedFeatureTitle
+          ? (featureIdByTitle.get(task.relatedFeatureTitle.toLowerCase()) ??
+            null)
+          : null,
+        title: task.title,
+        description: task.description,
+        priority: task.priority,
+        acceptance_criteria: task.acceptanceCriteria,
+        sort_order: index,
+      })),
+    );
+  } catch (error) {
+    console.error("Task generation failed", error);
   }
 
   redirect(`/projects/${project.id}`);

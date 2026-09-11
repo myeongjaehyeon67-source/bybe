@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { calculateProgress } from "@/lib/progress";
 import type { FeaturePriority, ProjectStatus } from "@/types/database";
 
 const STATUS_LABEL: Record<ProjectStatus, string> = {
@@ -40,16 +44,48 @@ export default async function ProjectOverviewPage({
     .eq("project_id", projectId)
     .order("created_at", { ascending: true });
 
+  const { data: tasks } = await supabase
+    .from("tasks")
+    .select("status")
+    .eq("project_id", projectId);
+
+  const totalTasks = tasks?.length ?? 0;
+  const completedTasks =
+    tasks?.filter((t) => t.status === "done").length ?? 0;
+  const progress = calculateProgress(completedTasks, totalTasks);
+
   return (
     <div className="flex flex-1 flex-col gap-8">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold tracking-tight">
-            {project.name}
-          </h1>
-          <Badge variant="secondary">{STATUS_LABEL[project.status]}</Badge>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-semibold tracking-tight">
+              {project.name}
+            </h1>
+            <Badge variant="secondary">{STATUS_LABEL[project.status]}</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {project.description}
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">{project.description}</p>
+        <Button
+          variant="outline"
+          nativeButton={false}
+          render={<Link href={`/projects/${projectId}/tasks`} />}
+        >
+          View Tasks
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <h2 className="text-sm font-medium">MVP Progress</h2>
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-medium">{progress}%</span>
+          <span className="text-muted-foreground">
+            {completedTasks} / {totalTasks} tasks completed
+          </span>
+        </div>
+        <Progress value={progress} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">

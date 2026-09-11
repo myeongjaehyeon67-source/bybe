@@ -1,0 +1,112 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { updateTaskStatus } from "@/actions/tasks";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import type { TaskStatus } from "@/types/database";
+
+const STATUS_OPTIONS: { status: TaskStatus; label: string }[] = [
+  { status: "todo", label: "To Do" },
+  { status: "doing", label: "Doing" },
+  { status: "done", label: "Done" },
+];
+
+export default async function TaskDetailPage({
+  params,
+}: {
+  params: Promise<{ projectId: string; taskId: string }>;
+}) {
+  const { projectId, taskId } = await params;
+  const supabase = await createClient();
+
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("*, features(title)")
+    .eq("id", taskId)
+    .single();
+
+  if (!task) {
+    notFound();
+  }
+
+  return (
+    <div className="flex flex-1 flex-col gap-6">
+      <Link
+        href={`/projects/${projectId}/tasks`}
+        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        Back to Tasks
+      </Link>
+
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold tracking-tight">
+            {task.title}
+          </h1>
+          <Badge variant="outline">{task.priority}</Badge>
+        </div>
+        {task.features && (
+          <span className="text-sm text-muted-foreground">
+            Feature: {task.features.title}
+          </span>
+        )}
+        <p className="text-sm text-muted-foreground">{task.description}</p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <h2 className="text-sm font-medium">Status</h2>
+        <div className="flex gap-2">
+          {STATUS_OPTIONS.map((option) => (
+            <form
+              key={option.status}
+              action={updateTaskStatus.bind(
+                null,
+                taskId,
+                option.status,
+                projectId,
+              )}
+            >
+              <Button
+                type="submit"
+                variant={task.status === option.status ? "default" : "outline"}
+                size="sm"
+              >
+                {option.label}
+              </Button>
+            </form>
+          ))}
+        </div>
+      </div>
+
+      {task.acceptance_criteria.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-sm font-medium">Acceptance Criteria</h2>
+          <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+            {task.acceptance_criteria.map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <span className="mt-0.5">□</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-2">
+        <h2 className="text-sm font-medium">AI Coding Prompt</h2>
+        {task.ai_coding_prompt ? (
+          <pre className="whitespace-pre-wrap rounded-lg border bg-muted/30 p-3 text-sm">
+            {task.ai_coding_prompt}
+          </pre>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Not generated yet.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
