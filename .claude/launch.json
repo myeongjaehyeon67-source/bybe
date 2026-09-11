@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "project-os-dev",
+      "runtimeExecutable": "C:\\Users\\audwo\\Desktop\\바이브코딩\\.claude\\dev.cmd",
+      "runtimeArgs": [],
+      "port": 3000
+    }
+  ]
+}
